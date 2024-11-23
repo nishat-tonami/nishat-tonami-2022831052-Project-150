@@ -3,81 +3,175 @@
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 480
+#define SNAKE_BLOCK_SIZE 20
 
-bool game_is_running=false;
-SDL_Window *window=NULL;
-SDL_Renderer *renderer=NULL;
+bool game_is_running = false;
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
 
+class Snake
+{
+private:
+    int snake_x = SCREEN_WIDTH / 2;
+    int snake_y = SCREEN_HEIGHT / 2;
+    int snake_dx = 0;
+    int snake_dy = 0;
 
-bool initializeWindow(void) {
-
-    if (SDL_Init(SDL_INIT_VIDEO)<0)
+public:
+    Snake() {}
+    void update()
     {
-        printf("ERROR : SDL failed to initialize\nSDL Error: '%s'\n",SDL_GetError());
+        snake_x += snake_dx;
+        snake_y += snake_dy;
+
+        if (snake_x < 0)
+            snake_x = SCREEN_WIDTH - SNAKE_BLOCK_SIZE;
+        if (snake_x >= SCREEN_WIDTH)
+            snake_x = 0;
+        if (snake_y < 0)
+            snake_y = SCREEN_HEIGHT - SNAKE_BLOCK_SIZE;
+        if (snake_y >= SCREEN_HEIGHT)
+            snake_y = 0;
+    }
+    void process_input(SDL_Event event)
+    {
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            game_is_running = false;
+            break;
+        case SDL_KEYDOWN:
+
+            switch (event.key.keysym.sym)
+            {
+            case SDLK_UP:
+                if (snake_dy == 0)
+                {
+                    snake_dx = 0;
+                    snake_dy = -SNAKE_BLOCK_SIZE;
+                }
+                break;
+            case SDLK_DOWN:
+                if (snake_dy == 0)
+                {
+                    snake_dx = 0;
+                    snake_dy = SNAKE_BLOCK_SIZE;
+                }
+                break;
+            case SDLK_LEFT:
+                if (snake_dx == 0)
+                {
+                    snake_dy = 0;
+                    snake_dx = -SNAKE_BLOCK_SIZE;
+                }
+                break;
+            case SDLK_RIGHT:
+                if (snake_dx == 0)
+                {
+                    snake_dy = 0;
+                    snake_dx = SNAKE_BLOCK_SIZE;
+                }
+                break;
+            }
+        }
+    }
+    void draw()
+    {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_Rect snake_block = {snake_x, snake_y, SNAKE_BLOCK_SIZE, SNAKE_BLOCK_SIZE};
+        SDL_RenderFillRect(renderer, &snake_block);
+    }
+};
+
+Snake snake;
+
+bool initializeWindow(void)
+{
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        printf("ERROR : SDL failed to initialize\nSDL Error: '%s'\n", SDL_GetError());
         return false;
     }
 
-    window=SDL_CreateWindow(
-        "Window Created",
+    window = SDL_CreateWindow(
+        "Snake Created",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
         0);
 
-    if(!window) {
-        printf("ERROR : Failed to open window\nSDL Error: '%s'\n",SDL_GetError());
+    if (!window)
+    {
+        printf("ERROR : Failed to open window\nSDL Error: '%s'\n", SDL_GetError());
         return false;
     }
 
-    renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (!renderer)
+    {
         printf("ERROR : Failed to create renderer\nSDL Error: '%s'\n", SDL_GetError());
         return false;
     }
     return true;
 }
 
-void process_input(void) {
+void process_input(void)
+{
 
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
+    while (SDL_PollEvent(&event))
+    {
+        snake.process_input(event);
         switch (event.type)
         {
         case SDL_QUIT:
-            game_is_running=false;
+            game_is_running = false;
             break;
 
+            break;
         default:
             break;
         }
     }
 }
 
-void draw(void) {
+void update(void)
+{
+    snake.update();
+}
 
-    SDL_SetRenderDrawColor(renderer,0,0,0,255);
+void draw(void)
+{
 
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+
+    snake.draw();
 
     SDL_RenderPresent(renderer);
 }
 
-void destroyWindow(void) {
+void destroyWindow(void)
+{
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
-int main(int argc,char **argv)
+int main(int argc, char **argv)
 {
-    game_is_running=initializeWindow();
+    game_is_running = initializeWindow();
 
-    while(game_is_running) {
+    while (game_is_running)
+    {
 
         process_input();
-
+        update();
         draw();
+
+        SDL_Delay(100);
     }
 
     destroyWindow();
