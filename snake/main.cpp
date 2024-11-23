@@ -2,17 +2,22 @@
 #include <stdio.h>
 #include <vector>
 #include <utility>
+#include <string>
+#include <SDL2/SDL_ttf.h>
+#include <algorithm>
 
 using namespace std;
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 480
 #define SNAKE_BLOCK_SIZE 20
+int score=0;
 
 bool game_is_running = false;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
-bool game_over = false;
+TTF_Font* font = NULL;
+bool is_game_over = false;
 
 class Food
 {
@@ -164,6 +169,10 @@ bool initializeWindow(void)
         printf("ERROR : SDL failed to initialize\nSDL Error: '%s'\n", SDL_GetError());
         return false;
     }
+    if (TTF_Init() == -1) {
+        printf("SDL_ttf could not initialize! TTF_Error: %s\n", TTF_GetError());
+        return false;
+    }
 
     window = SDL_CreateWindow(
         "Snake Game",
@@ -185,7 +194,35 @@ bool initializeWindow(void)
         printf("ERROR : Failed to create renderer\nSDL Error: '%s'\n", SDL_GetError());
         return false;
     }
+     font = TTF_OpenFont("ShadeBlue-2OozX.ttf",28); 
+    if (font == NULL) {
+        printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
+        return false;
+    }
+
     return true;
+}
+
+void render_text(const char*text,int x,int y,SDL_Color color) {
+    SDL_Surface* textSurface = TTF_RenderText_Blended(font,text,color);
+    if(textSurface==NULL) {
+        printf("Unable to render text surface! TTF_Error: %s\n",TTF_GetError());
+        return;
+    }
+
+    SDL_Texture* textTexture=SDL_CreateTextureFromSurface(renderer,textSurface);
+    if(textTexture==NULL) {
+        printf("Unable to create texture from rendered text! SDL_Error: %s\n",SDL_GetError());
+        SDL_FreeSurface(textSurface);
+        return;
+    }
+
+    SDL_Rect renderQuad={x,y,textSurface->w,textSurface->h};
+    SDL_RenderCopy(renderer,textTexture,NULL,&renderQuad);
+
+    SDL_DestroyTexture(textTexture);
+    SDL_FreeSurface(textSurface);
+
 }
 
 void process_input(void)
@@ -213,13 +250,26 @@ void update(void)
     if (snake.eat_food(food.getx(), food.gety()))
     {
         food.respawn();
+        score++;
     }
     snake.update();
 
     if (snake.detect_collision())
     {
-        game_over = true;
+        is_game_over = true;
     }
+}
+
+string get_score_string(int x) {
+    string s;
+    while(x>0) {
+        s.push_back(x%10+'0');
+        x/=10;
+    }
+    if(s.empty()) s.push_back('0');
+    reverse(s.begin(),s.end());
+    s = "Score: " + s;
+    return s;
 }
 
 void draw(void)
@@ -230,14 +280,22 @@ void draw(void)
 
     snake.draw();
     food.draw();
+  
+    string s = get_score_string(score);
+    
+    render_text(s.c_str(),20,20,{255,255,255,255});
 
     SDL_RenderPresent(renderer);
 }
 
 void destroyWindow(void)
-{
+{   
+    TTF_CloseFont(font);
+    font = NULL;
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    TTF_Quit();
     SDL_Quit();
 }
 
@@ -248,7 +306,7 @@ int main(int argc, char **argv)
     while (game_is_running)
     {   
         process_input();
-        if (!game_over)
+        if (!is_game_over)
         {
             update();
         }
