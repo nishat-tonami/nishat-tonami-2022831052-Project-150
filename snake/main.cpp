@@ -12,31 +12,38 @@ using namespace std;
 bool game_is_running = false;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
+bool game_over = false;
 
-class Food {
-    private: 
+class Food
+{
+private:
     int x;
     int y;
-    public:
-    
-    Food() {
+
+public:
+    Food()
+    {
         respawn();
     }
-    void respawn() {
-        x=(rand()%(SCREEN_WIDTH/SNAKE_BLOCK_SIZE))*SNAKE_BLOCK_SIZE;
-        y=(rand()%(SCREEN_HEIGHT/SNAKE_BLOCK_SIZE))*SNAKE_BLOCK_SIZE;
+    void respawn()
+    {
+        x = (rand() % (SCREEN_WIDTH / SNAKE_BLOCK_SIZE)) * SNAKE_BLOCK_SIZE;
+        y = (rand() % (SCREEN_HEIGHT / SNAKE_BLOCK_SIZE)) * SNAKE_BLOCK_SIZE;
     }
-    void draw() {
-        SDL_SetRenderDrawColor(renderer,255,0,0,255);
-        SDL_Rect food_block={x,y,SNAKE_BLOCK_SIZE,SNAKE_BLOCK_SIZE};
-        SDL_RenderFillRect(renderer,&food_block);
+    void draw()
+    {
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_Rect food_block = {x, y, SNAKE_BLOCK_SIZE, SNAKE_BLOCK_SIZE};
+        SDL_RenderFillRect(renderer, &food_block);
     }
-   int getx() {
-    return x;
-   }
-   int gety() {
-    return y;
-   }
+    int getx()
+    {
+        return x;
+    }
+    int gety()
+    {
+        return y;
+    }
 };
 
 class Snake
@@ -46,29 +53,22 @@ private:
     int snake_y = SCREEN_HEIGHT / 2;
     int snake_dx = 0;
     int snake_dy = 0;
-    vector<pair<int,int>> body; 
-    bool food_is_eaten=false;
+    vector<pair<int, int>> body;
+    bool food_is_eaten = false;
 
 public:
-    Snake() {
-        body.insert(body.begin(), make_pair(snake_x,snake_y));
+    Snake()
+    {
+        body.insert(body.begin(), make_pair(snake_x, snake_y));
     }
     void update()
     {
         snake_x += snake_dx;
         snake_y += snake_dy;
 
-        if (snake_x < 0)
-            snake_x = SCREEN_WIDTH - SNAKE_BLOCK_SIZE;
-        if (snake_x >= SCREEN_WIDTH)
-            snake_x = 0;
-        if (snake_y < 0)
-            snake_y = SCREEN_HEIGHT - SNAKE_BLOCK_SIZE;
-        if (snake_y >= SCREEN_HEIGHT)
-            snake_y = 0;
-
-        body.insert(body.begin(), make_pair(snake_x,snake_y));
-        if(!food_is_eaten) body.pop_back();
+        body.insert(body.begin(), make_pair(snake_x, snake_y));
+        if (!food_is_eaten)
+            body.pop_back();
     }
     void process_input(SDL_Event event)
     {
@@ -115,19 +115,41 @@ public:
     void draw()
     {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        for(int i=0;i<body.size();i++) {
-            SDL_Rect snake_block = {body[i].first,body[i].second, SNAKE_BLOCK_SIZE, SNAKE_BLOCK_SIZE};
+        for (int i = 0; i < body.size(); i++)
+        {
+            SDL_Rect snake_block = {body[i].first, body[i].second, SNAKE_BLOCK_SIZE, SNAKE_BLOCK_SIZE};
             SDL_RenderFillRect(renderer, &snake_block);
         }
     }
-    bool eat_food(int food_x,int food_y) {
-        food_is_eaten=false;
-        for(int i=0;i<body.size();i++) {
-           if(body[i].first==food_x && body[i].second==food_y) {
-            food_is_eaten=true;
-           }
+    bool eat_food(int food_x, int food_y)
+    {
+        food_is_eaten = false;
+        for (int i = 0; i < body.size(); i++)
+        {
+            if (body[i].first == food_x && body[i].second == food_y)
+            {
+                food_is_eaten = true;
+            }
         }
         return food_is_eaten;
+    }
+    bool detect_collision()
+    {
+        for (int i = 0; i < body.size(); i++)
+        {
+            for (int j = i + 1; j < body.size(); j++)
+            {
+                if (body[i].first == body[j].first && body[i].second == body[j].second)
+                {
+                    return true;
+                }
+            }
+        }
+        if (body[0].first < 0 || body[0].second < 0)
+            return true;
+        if (body[0].first >= SCREEN_WIDTH || body[0].second >= SCREEN_HEIGHT)
+            return true;
+        return false;
     }
 };
 
@@ -144,7 +166,7 @@ bool initializeWindow(void)
     }
 
     window = SDL_CreateWindow(
-        "Snake Created",
+        "Snake Game",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         SCREEN_WIDTH,
@@ -187,11 +209,17 @@ void process_input(void)
 }
 
 void update(void)
-{    
-    if(snake.eat_food(food.getx(),food.gety())){
+{
+    if (snake.eat_food(food.getx(), food.gety()))
+    {
         food.respawn();
     }
     snake.update();
+
+    if (snake.detect_collision())
+    {
+        game_over = true;
+    }
 }
 
 void draw(void)
@@ -218,10 +246,13 @@ int main(int argc, char **argv)
     game_is_running = initializeWindow();
 
     while (game_is_running)
-    {
-
+    {   
         process_input();
-        update();
+        if (!game_over)
+        {
+            update();
+        }
+
         draw();
 
         SDL_Delay(100);
