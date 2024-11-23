@@ -31,7 +31,12 @@ class Food {
         SDL_Rect food_block={x,y,SNAKE_BLOCK_SIZE,SNAKE_BLOCK_SIZE};
         SDL_RenderFillRect(renderer,&food_block);
     }
-
+   int getx() {
+    return x;
+   }
+   int gety() {
+    return y;
+   }
 };
 
 class Snake
@@ -45,7 +50,9 @@ private:
     bool food_is_eaten=false;
 
 public:
-    Snake() {}
+    Snake() {
+        body.insert(body.begin(), make_pair(snake_x,snake_y));
+    }
     void update()
     {
         snake_x += snake_dx;
@@ -108,10 +115,19 @@ public:
     void draw()
     {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        for(int i=0;i<=body.size();i++) {
+        for(int i=0;i<body.size();i++) {
             SDL_Rect snake_block = {body[i].first,body[i].second, SNAKE_BLOCK_SIZE, SNAKE_BLOCK_SIZE};
             SDL_RenderFillRect(renderer, &snake_block);
         }
+    }
+    bool eat_food(int food_x,int food_y) {
+        food_is_eaten=false;
+        for(int i=0;i<body.size();i++) {
+           if(body[i].first==food_x && body[i].second==food_y) {
+            food_is_eaten=true;
+           }
+        }
+        return food_is_eaten;
     }
 };
 
@@ -171,7 +187,10 @@ void process_input(void)
 }
 
 void update(void)
-{
+{    
+    if(snake.eat_food(food.getx(),food.gety())){
+        food.respawn();
+    }
     snake.update();
 }
 
