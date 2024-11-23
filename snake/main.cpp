@@ -194,7 +194,7 @@ bool initializeWindow(void)
         printf("ERROR : Failed to create renderer\nSDL Error: '%s'\n", SDL_GetError());
         return false;
     }
-     font = TTF_OpenFont("ShadeBlue-2OozX.ttf",28); 
+     font = TTF_OpenFont("ShadeBlue-2OozX.ttf",42); 
     if (font == NULL) {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
         return false;
@@ -272,6 +272,16 @@ string get_score_string(int x) {
     return s;
 }
 
+void draw_score(int x,int y) {
+     string s = get_score_string(score);
+    
+    render_text(s.c_str(),x,y,{255,255,255,255});
+}
+
+void game_over() {
+    render_text("Game Over!",(SCREEN_WIDTH/2)-20,SCREEN_HEIGHT/2-35,{255,255,255,255});
+    draw_score(SCREEN_WIDTH/2-20,SCREEN_HEIGHT/2);
+}
 void draw(void)
 {
 
@@ -280,10 +290,9 @@ void draw(void)
 
     snake.draw();
     food.draw();
-  
-    string s = get_score_string(score);
-    
-    render_text(s.c_str(),20,20,{255,255,255,255});
+      
+    if(is_game_over) game_over();
+    else draw_score(20, 20);
 
     SDL_RenderPresent(renderer);
 }
