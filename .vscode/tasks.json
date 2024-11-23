@@ -8,6 +8,7 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "./snake/*.cpp",
+                // "./snake/*.h",
                 "-o",
                 "./snake/snake.exe",
                 "-I",
