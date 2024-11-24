@@ -354,12 +354,20 @@ void process_input(void)
     }
 }
 
+Uint32 bonus_food_timer=0;
+
 void update(void)
 {
     if (score % 5 == 0 && score != 0 && is_bonus_food_generated == false)
     {
         bonusFood.respawn();
         is_bonus_food_generated = true;
+        bonus_food_timer=SDL_GetTicks();
+    }
+
+    if(is_bonus_food_generated && SDL_GetTicks()-bonus_food_timer>5000) {
+        bonusFood.reset();
+        is_bonus_food_generated=false;
     }
 
     if (snake.eat_food(food.getx(), food.gety()))
