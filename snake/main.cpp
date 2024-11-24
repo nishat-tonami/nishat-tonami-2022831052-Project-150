@@ -20,6 +20,43 @@ TTF_Font *font = NULL;
 bool is_game_over = false;
 bool is_bonus_food_generated = false;
 
+class Obstacle {
+private: 
+    vector<pair<int,int>> positions;
+public:
+   Obstacle(int cnt) {
+    generate_obstacles(cnt);
+   }
+
+   void generate_obstacles(int cnt) {
+    positions.clear();
+    for(int i=0;i<cnt;i++) {
+        int x=(rand()%(SCREEN_WIDTH/SNAKE_BLOCK_SIZE))*SNAKE_BLOCK_SIZE;
+        int y=(rand()%(SCREEN_HEIGHT/SNAKE_BLOCK_SIZE))*SNAKE_BLOCK_SIZE;
+        positions.push_back(make_pair(x,y));
+    }
+   }
+
+   void draw() {
+    SDL_SetRenderDrawColor(renderer,128,128,128,255);
+    for(auto &pos: positions) {
+        SDL_Rect obstacle_block={pos.first,pos.second,SNAKE_BLOCK_SIZE,SNAKE_BLOCK_SIZE};
+        SDL_RenderFillRect(renderer,&obstacle_block);
+    }
+   }
+   bool check_collision(int x,int y) {
+       for(auto &pos:positions) {
+        if(pos.first==x && pos.second==y) return true;
+       }
+       return false;
+   }
+   const vector<pair<int,int>> &get_position() const {
+    return positions;
+   }
+};
+
+Obstacle obstacles{5};
+
 class BonusFood
 {
 private:
@@ -213,6 +250,8 @@ public:
             return true;
         if (body[0].first >= SCREEN_WIDTH || body[0].second >= SCREEN_HEIGHT)
             return true;
+
+        if(obstacles.check_collision(body[0].first,body[0].second))  return true;
         return false;
     }
 };
@@ -261,6 +300,8 @@ bool initializeWindow(void)
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
         return false;
     }
+
+    obstacles.generate_obstacles(5);
 
     return true;
 }
@@ -331,11 +372,12 @@ void update(void)
     }
 
     snake.update();
-
+    
     if (snake.detect_collision())
     {
         is_game_over = true;
     }
+    
 }
 
 string get_score_string(int x)
@@ -374,6 +416,7 @@ void draw(void)
     snake.draw();
     food.draw();
     bonusFood.draw();
+    obstacles.draw();
 
     if (is_game_over)
         game_over();
