@@ -55,7 +55,7 @@ public:
    }
 };
 
-Obstacle obstacles{5};
+Obstacle obstacles{8};
 
 class BonusFood
 {
@@ -305,7 +305,7 @@ bool initializeWindow(void)
         return false;
     }
 
-    obstacles.generate_obstacles(5);
+    obstacles.generate_obstacles(8);
 
     return true;
 }
@@ -384,10 +384,11 @@ void update(void)
     }
 
     snake.update();
-    
+
     if (snake.detect_collision())
     {
         is_game_over = true;
+        return;
     }
     
 }
