@@ -19,41 +19,52 @@ SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;
 bool is_game_over = false;
 bool is_bonus_food_generated = false;
-int bonus_food_milestone=5;
+int bonus_food_milestone = 5;
 
-class Obstacle {
-private: 
-    vector<pair<int,int>> positions;
+class Obstacle
+{
+private:
+    vector<pair<int, int>> positions;
+
 public:
-   Obstacle(int cnt) {
-    generate_obstacles(cnt);
-   }
-
-   void generate_obstacles(int cnt) {
-    positions.clear();
-    for(int i=0;i<cnt;i++) {
-        int x=(rand()%(SCREEN_WIDTH/SNAKE_BLOCK_SIZE))*SNAKE_BLOCK_SIZE;
-        int y=(rand()%(SCREEN_HEIGHT/SNAKE_BLOCK_SIZE))*SNAKE_BLOCK_SIZE;
-        positions.push_back(make_pair(x,y));
+    Obstacle(int cnt)
+    {
+        generate_obstacles(cnt);
     }
-   }
 
-   void draw() {
-    SDL_SetRenderDrawColor(renderer,128,128,128,255);
-    for(auto &pos: positions) {
-        SDL_Rect obstacle_block={pos.first,pos.second,SNAKE_BLOCK_SIZE,SNAKE_BLOCK_SIZE};
-        SDL_RenderFillRect(renderer,&obstacle_block);
+    void generate_obstacles(int cnt)
+    {
+        positions.clear();
+        for (int i = 0; i < cnt; i++)
+        {
+            int x = (rand() % (SCREEN_WIDTH / SNAKE_BLOCK_SIZE)) * SNAKE_BLOCK_SIZE;
+            int y = (rand() % (SCREEN_HEIGHT / SNAKE_BLOCK_SIZE)) * SNAKE_BLOCK_SIZE;
+            positions.push_back(make_pair(x, y));
+        }
     }
-   }
-   bool check_collision(int x,int y) {
-       for(auto &pos:positions) {
-        if(pos.first==x && pos.second==y) return true;
-       }
-       return false;
-   }
-   const vector<pair<int,int>> &get_position() const {
-    return positions;
-   }
+
+    void draw()
+    {
+        SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+        for (auto &pos : positions)
+        {
+            SDL_Rect obstacle_block = {pos.first, pos.second, SNAKE_BLOCK_SIZE, SNAKE_BLOCK_SIZE};
+            SDL_RenderFillRect(renderer, &obstacle_block);
+        }
+    }
+    bool check_collision(int x, int y)
+    {
+        for (auto &pos : positions)
+        {
+            if (pos.first == x && pos.second == y)
+                return true;
+        }
+        return false;
+    }
+    const vector<pair<int, int>> &get_position() const
+    {
+        return positions;
+    }
 };
 
 Obstacle obstacles{8};
@@ -69,9 +80,10 @@ public:
     {
         reset();
     }
-     void respawn()
+    void respawn()
     {
-        do {
+        do
+        {
             x = (rand() % (SCREEN_WIDTH / SNAKE_BLOCK_SIZE)) * SNAKE_BLOCK_SIZE;
             y = (rand() % (SCREEN_HEIGHT / SNAKE_BLOCK_SIZE)) * SNAKE_BLOCK_SIZE;
         } while (obstacles.check_collision(x, y));
@@ -111,7 +123,8 @@ public:
     }
     void respawn()
     {
-        do {
+        do
+        {
             x = (rand() % (SCREEN_WIDTH / SNAKE_BLOCK_SIZE)) * SNAKE_BLOCK_SIZE;
             y = (rand() % (SCREEN_HEIGHT / SNAKE_BLOCK_SIZE)) * SNAKE_BLOCK_SIZE;
         } while (obstacles.check_collision(x, y));
@@ -120,7 +133,7 @@ public:
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_Rect food_block = {x, y, SNAKE_BLOCK_SIZE, SNAKE_BLOCK_SIZE};
-        SDL_RenderFillRect(renderer,&food_block);
+        SDL_RenderFillRect(renderer, &food_block);
     }
     int getx()
     {
@@ -141,7 +154,7 @@ private:
     int snake_dy = 0;
     vector<pair<int, int>> body;
     bool food_is_eaten = false;
-    bool bonus_food_is_eaten=false;
+    bool bonus_food_is_eaten = false;
 
 public:
     Snake()
@@ -256,7 +269,8 @@ public:
         if (body[0].first >= SCREEN_WIDTH || body[0].second >= SCREEN_HEIGHT)
             return true;
 
-        if(obstacles.check_collision(body[0].first,body[0].second))  return true;
+        if (obstacles.check_collision(body[0].first, body[0].second))
+            return true;
         return false;
     }
 };
@@ -355,21 +369,22 @@ void process_input(void)
     }
 }
 
-int bonus_food_timer=0;
+int bonus_food_timer = 0;
 
 void update(void)
 {
-    if (score>=bonus_food_milestone && score % 5 == 0 && score != 0 && is_bonus_food_generated == false)
+    if (score >= bonus_food_milestone && score % 5 == 0 && score != 0 && is_bonus_food_generated == false)
     {
         bonusFood.respawn();
         is_bonus_food_generated = true;
-        bonus_food_timer=SDL_GetTicks();
-        bonus_food_milestone+=5;
+        bonus_food_timer = SDL_GetTicks();
+        bonus_food_milestone += 5;
     }
 
-    if(is_bonus_food_generated && SDL_GetTicks()-bonus_food_timer>5000) {
+    if (is_bonus_food_generated && SDL_GetTicks() - bonus_food_timer > 5000)
+    {
         bonusFood.reset();
-        is_bonus_food_generated=false;
+        is_bonus_food_generated = false;
     }
 
     if (snake.eat_food(food.getx(), food.gety()))
@@ -392,7 +407,6 @@ void update(void)
         is_game_over = true;
         return;
     }
-    
 }
 
 string get_score_string(int x)
