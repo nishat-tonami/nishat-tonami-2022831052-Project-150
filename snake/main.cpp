@@ -19,6 +19,7 @@ SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;
 bool is_game_over = false;
 bool is_bonus_food_generated = false;
+int bonus_food_milestone=5;
 
 class Obstacle {
 private: 
@@ -358,11 +359,12 @@ int bonus_food_timer=0;
 
 void update(void)
 {
-    if (score % 5 == 0 && score != 0 && is_bonus_food_generated == false)
+    if (score>=bonus_food_milestone && score % 5 == 0 && score != 0 && is_bonus_food_generated == false)
     {
         bonusFood.respawn();
         is_bonus_food_generated = true;
         bonus_food_timer=SDL_GetTicks();
+        bonus_food_milestone+=5;
     }
 
     if(is_bonus_food_generated && SDL_GetTicks()-bonus_food_timer>5000) {
