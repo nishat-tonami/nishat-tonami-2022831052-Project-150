@@ -119,7 +119,7 @@ public:
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_Rect food_block = {x, y, SNAKE_BLOCK_SIZE, SNAKE_BLOCK_SIZE};
-        SDL_RenderFillRect(renderer, &food_block);
+        SDL_RenderFillRect(renderer,&food_block);
     }
     int getx()
     {
@@ -354,7 +354,7 @@ void process_input(void)
     }
 }
 
-Uint32 bonus_food_timer=0;
+int bonus_food_timer=0;
 
 void update(void)
 {
